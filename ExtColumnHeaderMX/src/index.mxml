@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application 
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:comp="com.ext.component.*"
+	xmlns:admin="com.ext.admin.*"
+	initialize="init()" xmlns:admin1="com.ext.admin.*" xmlns:component="com.ext.component.*" 
+>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="css/styles.css" />
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.*;
+			import mx.events.DataGridEvent;
+			
+			/**
+			 * Data provider of the data grid
+			 */
+			[Bindable] public var dpGrid:ArrayCollection;
+			
+			/**
+			 * A dummy arry for grid data
+			 */
+			private var gridData:Array = [
+				{Id:1,	Company:'Company A',	Price:11.99,	Size:"large",	Date:"09/01/2007",	Visible:true},
+				{Id:2,	Company:'Company B',	Price:12.00,	Size:"small",	Date:"15/08/2012",	Visible:false},
+				{Id:3,	Company:'Company C',	Price:17.05, 	Size:"medium",	Date:"12/07/2012",	Visible:true}
+			];
+			
+			/**
+			 * Initialize the application
+			 */
+			public function init():void {
+				dpGrid = new ArrayCollection(gridData);
+			}
+		]]>
+	</fx:Script>
+	
+	<!-- Demo grid -->
+	<component:ExtDataGrid width="100%" height="100%" dataProvider="{dpGrid}">
+		<comp:columns>
+			<!-- Normal DataGridColumn -->
+			<mx:DataGridColumn dataField="Id" textAlign="left" />
+			
+			<!-- Custom BVIDataGridColumn -->
+			<admin1:CompanyDataGridColumn />
+			
+			<!-- BVIDataGridColumn -->
+			<component:ExtDataGridColumn dataField="Price" textAlign="right" />
+			<component:ExtDataGridColumn dataField="Size" />
+			<component:ExtDataGridColumn dataField="Date" textAlign="center" />
+			
+			<!-- Exclude from the column selection list -->
+			<component:ExtDataGridColumn dataField="Visible" allowColumnSelection="false" />
+		</comp:columns> 
+	</component:ExtDataGrid>
+	
+</mx:Application>

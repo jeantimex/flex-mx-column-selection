@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas implements="mx.core.IFactory"
+		   xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   xmlns:component="com.bvi.component.*"
+		   width="100%" 
+		   height="100%"
+		   backgroundColor="#ffffff"
+		   backgroundAlpha="0" 
+		   horizontalScrollPolicy="off"
+		   creationComplete="onCreationCompleted()"
+		   rollOver="onRollOverHandler(event)"
+		   rollOut="onRollOutHandler(event)" xmlns:component1="com.ext.component.*"
+		   >
+	
+	<fx:Declarations>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.Label;
+			import mx.core.UIComponent;
+			
+			[Bindable] public var grid:ExtDataGrid;
+			[Bindable] public var column:DataGridColumn;
+			[Bindable] public var columnTextAlign:String;
+			
+			public function newInstance():* {
+				return new ExtHeaderRenderer();
+			}
+			
+			// Define a property for the view content
+			[Bindable] public var viewContent:DisplayObject = null;
+			
+			override public function set data(value:Object):void {
+				if (value) {
+					grid = parent.parent as ExtDataGrid;
+					
+					column = value as DataGridColumn;
+					columnTextAlign = column.getStyle('textAlign');
+				}
+			}
+			
+			private function onCreationCompleted(): void {
+				buildView();
+				layoutMenuButton();
+			}
+			
+			/**
+			 * Override if needed
+			 */
+			protected function buildView(): void {
+				if (viewContent == null) {
+					var lbl:Label = new Label();
+					lbl.text = column.headerText;
+					lbl.percentHeight = 100;
+					lbl.styleName = "columnHeaderLabel";
+					lbl.verticalCenter = 0;
+					viewContent = lbl;
+				}
+				
+				hbox.addChild( viewContent );
+			}
+			
+			private function layoutMenuButton(): void {
+				if (columnTextAlign == "right") {
+					hbox.setChildIndex(menuBtn, 0);
+				} else {
+					hbox.setChildIndex(menuBtn, hbox.numChildren - 1);
+				}
+			}
+			
+			/**
+			 * When rollover the header, show the menu button
+			 */
+			protected function onRollOverHandler(event:MouseEvent):void
+			{
+				grid.highlightedMenuBtn = menuBtn;
+				
+				menuBtn.show();
+			}
+			
+			/**
+			 * When rollout the header, hide the menu button
+			 */
+			protected function onRollOutHandler(e:MouseEvent):void
+			{
+				grid.highlightedMenuBtn = null;
+				
+				if (menuBtn != grid.activeMenuBtn) {
+					menuBtn.hide();
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox id="hbox" width="100%" height="100%" horizontalScrollPolicy="off" paddingLeft="5" paddingRight="5" horizontalGap="5" horizontalAlign="{columnTextAlign}" verticalAlign="middle">
+		<component1:ExtColumnHeaderMenuButton id="menuBtn" grid="{grid}"/>
+	</mx:HBox>
+	
+</mx:Canvas>

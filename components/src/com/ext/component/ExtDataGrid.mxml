@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGrid 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:s="library://ns.adobe.com/flex/spark" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:comp="com.bvi.component.*"
+>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Menu;
+			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.dataGridClasses.DataGridHeader;
+			import mx.core.FlexGlobals;
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			import mx.events.FlexMouseEvent;
+			import mx.events.MenuEvent;
+			import mx.utils.StringUtil;
+			
+			use namespace mx_internal;
+			
+			/**
+			 * Is the drop-down menu visible?
+			 */
+			public var menuVisible:Boolean = false;
+			
+			/**
+			 * Our drop-down menu instance.
+			 */
+			public var columnHeaderMenu:Menu = new Menu();
+			
+			/**
+			 * Data provider of our drop-down menu
+			 */
+			[Bindable] public var dpMenu:ArrayCollection = new ArrayCollection();
+			
+			/**
+			 * These two variables control the behavior of drop-down menu
+			 */
+			public var activeMenuBtn:ExtColumnHeaderMenuButton = null;
+			public var highlightedMenuBtn:ExtColumnHeaderMenuButton = null;
+			
+			/**
+			 * Override the set columns function to set column header renderer
+			 */
+			override public function set columns(value:Array):void
+			{
+				super.columns = value;
+				
+				// Only ExtDataGridColumn with allowColumnSelection=true supports the ExtColumnHeader
+				for(var i:int = 0; i < columns.length; i++) {
+					if(columns[i] is ExtDataGridColumn) {
+						var column:ExtDataGridColumn = columns[i];
+						if (column.allowColumnSelection) {
+							column.headerRenderer = new ClassFactory(ExtHeaderRenderer);
+						}
+					}
+				}
+				
+				invalidateProperties();
+			}
+			
+			/**
+			 * Override childrenCreated to create the menu instance
+			 */
+			override protected function childrenCreated():void {
+				super.childrenCreated();
+				
+				// Create the menu
+				columnHeaderMenu = Menu.createMenu( this, dpMenu, false );
+				columnHeaderMenu.variableRowHeight = true;
+				columnHeaderMenu.setStyle("styleName", "columnHeaderMenu");
+				
+				// Relay item click events
+				columnHeaderMenu.addEventListener( MenuEvent.ITEM_CLICK, onMenuItemClick );
+				
+				// Handle menu hide
+				columnHeaderMenu.addEventListener( MenuEvent.MENU_HIDE, onMenuHide );
+				
+				// Handle menu show
+				columnHeaderMenu.addEventListener( MenuEvent.MENU_SHOW, onMenuShow );
+			}
+			
+			/**
+			 * Called when an item in the menu is clicked.
+			 */
+			private function onMenuItemClick( e:MenuEvent ): void {
+				var item:Object = e.item;
+				switch (item.menuType) {
+					// By using a menuType property, we can extend more menu features
+					case "column":
+						var col:DataGridColumn = this.columns[item.index];
+						col.visible = !col.visible;
+						break;
+				}
+			}
+			
+			/**
+			 * Called when the menu is hidden.
+			 */
+			private function onMenuHide( e:MenuEvent ): void {
+				menuVisible = false;
+				
+				// If user clicks the menu outside the column header area
+				// hide the origianl active menu button
+				if (highlightedMenuBtn != activeMenuBtn) {
+					activeMenuBtn.hide();
+				}
+				
+				// Unset active menu button
+				activeMenuBtn = null;
+			}
+			
+			/**
+			 * Called when the menu is shown.
+			 */
+			private function onMenuShow( e:MenuEvent ): void {
+				menuVisible = true;
+			}
+			
+			/**
+			 * Toggle the column header menu
+			 */
+			public function toggleColumnHeaderMenu( e:Event ):void {
+				// Get the menu button that is being clicked
+				var menuBtn:ExtColumnHeaderMenuButton = e.target as ExtColumnHeaderMenuButton;
+				
+				// Toggle menu visibility
+				// If user clicks on another menu button in another header, show the menu starightaway
+				menuVisible = !menuVisible || (activeMenuBtn && (activeMenuBtn != highlightedMenuBtn));
+				
+				if( menuVisible) {
+					// Update menu data provider and show the menu
+					updatedpMenuProvider();
+					showMenu( columnHeaderMenu, stage.mouseX - menuBtn.mouseX, stage.mouseY - menuBtn.mouseY + menuBtn.height );
+					
+					// set active menu button
+					// If user clicks on another menu button in another header, hide the current active menu button
+					if (activeMenuBtn && (activeMenuBtn != highlightedMenuBtn)) {
+						activeMenuBtn.hide();
+					}
+					activeMenuBtn = menuBtn;
+				} else {
+					// Hide menu
+					columnHeaderMenu.hide();
+				}
+			}
+			
+			/**
+			 * Update the menu data provider
+			 */
+			private function updatedpMenuProvider():void {
+				// Redraw the context menu
+				dpMenu = new ArrayCollection();
+				
+				// Get the total number of columns
+				var numColumns:int = this.columns.length;
+				// Calculate how many visible columns are left
+				// This is used to disiable the last visiable column in the context menu
+				var numVisibleColumns:int = 0;
+				var columns:Array = this.columns;
+				var col:DataGridColumn;
+				for(var j:int = 0; j < numColumns; j++) {
+					col = columns[j] as DataGridColumn;
+					// Skip the column that has empty header text
+					// You can customize to skip certain column here
+					if (StringUtil.trim(col.headerText).length == 0) continue;
+					if (col.visible && col is ExtDataGridColumn) {
+						if (ExtDataGridColumn(col).allowColumnSelection) {
+							numVisibleColumns++;
+						}
+					}
+				}
+				
+				// Deploy the menu items
+				for(j = 0; j < numColumns; j++) {
+					col = columns[j] as DataGridColumn;
+					if (StringUtil.trim(col.headerText).length == 0) continue;
+					if (col is ExtDataGridColumn) {
+						if (!ExtDataGridColumn(col).allowColumnSelection) continue;
+					}
+					
+					// If the column is the last visible one and its allowColumnSelection is true then disable it
+					var colEnabled:Boolean = true;
+					if (col is ExtDataGridColumn) {
+						if (ExtDataGridColumn(col).allowColumnSelection && numVisibleColumns == 1 && col.visible) {
+							colEnabled = false;
+						}
+					}
+					dpMenu.addItem({ label: col.headerText, type: "check", toggled: col.visible, menuType: "column", enabled:colEnabled, index:j });
+				}
+				
+				columnHeaderMenu.dataProvider = dpMenu;
+			}
+			
+			/**
+			 * Shows a popup menu at the given (x,y) position, ensuring that the menu stays within screen bounds.
+			 */
+			public static function showMenu( menu:Menu, x:Number, y:Number ): void {
+				// We need to show, THEN move the menu because menu.width & menu.height
+				// are not valid until we actually show the menu atleast once
+				menu.show( x, y );
+				
+				// Adjust x
+				var shiftX:Number = x + menu.width - FlexGlobals.topLevelApplication.screen.width;
+				if( shiftX > 0 ) x = Math.max( x - shiftX, 0 );
+				
+				// Adjust y
+				var shiftY:Number = y + menu.height - FlexGlobals.topLevelApplication.screen.height;
+				if( shiftY > 0 ) y = Math.max( y - shiftY, 0 );
+				
+				// Move to new position
+				menu.move( x, y );
+			}
+		]]>
+	</fx:Script>
+</mx:DataGrid>

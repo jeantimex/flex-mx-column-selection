@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:DataGridColumn 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:mx="library://ns.adobe.com/flex/mx"
+	xmlns:comp="com.bvi.component.*"
+	dataField="Company" 
+	sortCompareFunction="sortCompanyName"
+	headerRenderer="com.ext.admin.CompanyHeaderRenderer"
+>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.utils.ObjectUtil;
+			
+			public static const fontColorText:String = "<font color='#888888'>";
+			public static const fontCloseText:String = "</font>";
+			
+			/**
+			 * Comparison function for sorting a company name
+			 */
+			private function sortCompanyName( row1:Object, row2:Object ): int {
+				var name1:String = row1[dataField];
+				var name2:String = row2[dataField];
+				return ObjectUtil.stringCompare(name1, name2);
+			}
+		]]>
+	</fx:Script>
+	
+	<!--
+	<mx:headerRenderer>
+		<fx:Component>
+			<mx:HBox horizontalAlign="left" verticalAlign="middle" horizontalScrollPolicy="off" paddingLeft="5">
+				<fx:Script>
+					<![CDATA[
+					]]>
+				</fx:Script>
+				<mx:Label id="headerRendererLabel" htmlText="{'Company ' + CompanyDataGridColumn.fontColorText + 'name' + CompanyDataGridColumn.fontCloseText}" fontSize="10" paddingLeft="0" paddingRight="0"/>
+			</mx:HBox>
+		</fx:Component>
+	</mx:headerRenderer>
+	-->
+	
+	<mx:itemRenderer>
+		<fx:Component>
+			<mx:HBox horizontalAlign="left" verticalAlign="middle" horizontalScrollPolicy="off" paddingLeft="5">
+				<fx:Script>
+					<![CDATA[
+						override public function set data(value:Object):void {
+							super.data = value;
+							lbl.htmlText = "<i>" + CompanyDataGridColumn.fontColorText + data.Company + CompanyDataGridColumn.fontCloseText + "</i>";
+						}
+					]]>
+				</fx:Script>
+				<mx:Label id="lbl" fontSize="10" paddingLeft="0" paddingRight="0"/>
+			</mx:HBox>
+		</fx:Component>
+	</mx:itemRenderer>
+
+</mx:DataGridColumn>

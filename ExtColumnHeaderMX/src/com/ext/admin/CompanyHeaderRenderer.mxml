@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component:ExtHeaderRenderer 
+	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+	xmlns:mx="library://ns.adobe.com/flex/mx" 
+	xmlns:comp="com.bvi.component.*"
+	viewContent="{view}" xmlns:component="com.ext.component.*"
+>
+	
+	<fx:Declarations>
+		<mx:HBox id="view" horizontalAlign="left" verticalAlign="middle" horizontalScrollPolicy="off" paddingLeft="5">
+			<mx:Label styleName="columnHeaderLabel" id="headerRendererLabel" htmlText="{'Company ' + CompanyDataGridColumn.fontColorText + 'name' + CompanyDataGridColumn.fontCloseText}" fontSize="10" paddingLeft="0" paddingRight="0"/>
+		</mx:HBox>
+	</fx:Declarations>
+	
+</component:ExtHeaderRenderer>

@@ -1,0 +1,19 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+.columnHeaderLabel {
+	fontSize: 10;
+	fontWeight: bold;
+}
+
+.columnHeaderMenu {
+	fontSize: 10;
+	openDuration: 0;
+}
+
+.columnHeaderMenuButton {
+	upSkin: Embed("images/arrow-down.png");
+	overSkin: Embed("images/arrow-over.png");
+	downSkin: Embed("images/arrow-up.png");
+}
